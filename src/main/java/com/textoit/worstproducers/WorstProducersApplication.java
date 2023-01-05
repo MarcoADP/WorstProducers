@@ -1,8 +1,10 @@
 package com.textoit.worstproducers;
 
+import com.textoit.worstproducers.service.MovieService;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,6 +12,9 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class WorstProducersApplication {
+
+	@Autowired
+	MovieService movieService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(WorstProducersApplication.class, args);
@@ -25,8 +30,9 @@ public class WorstProducersApplication {
 					throw new FileNotFoundException("Sem filmes");
 				}
 
-				String text = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-				System.out.println(text);
+				String movies = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+				movieService.populate(movies);
+
 			} catch (FileNotFoundException e) {
 				throw new FileNotFoundException("Arquivo não encontrado. Verifique se o CSV está na pasta Resources!");
 			}
