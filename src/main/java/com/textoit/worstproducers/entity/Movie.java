@@ -1,5 +1,6 @@
 package com.textoit.worstproducers.entity;
 
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,6 +24,10 @@ public class Movie {
     private static final Integer STUDIOS_IDX = 2;
     private static final Integer PRODUCERS_IDX = 3;
     private static final Integer WINNER_IDX = 4;
+
+    private static final String COMMA_SEP = ", ";
+    private static final String AND_SEP = " and ";
+    private static final String COMMA_AND_SEP = ", and ";
 
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE)
@@ -55,12 +60,25 @@ public class Movie {
         this.year = Integer.parseInt(columns.get(YEAR_IDX));
         this.title = columns.get(TITLE_IDX);
         this.studios = columns.get(STUDIOS_IDX);
-        this.producers = columns.get(PRODUCERS_IDX);
+        this.producers = transformProducers(columns.get(PRODUCERS_IDX));
         this.winner = isWinner(columns);
+    }
+
+    private String transformProducers(String producers) {
+        return removeAndSeparator(producers);
+    }
+
+    private String removeAndSeparator(String producers) {
+        String[] a = producers.split(String.format("%s|%s|%s", COMMA_AND_SEP, AND_SEP, COMMA_SEP));
+        return String.join(",", a);
     }
 
     private Boolean isWinner(List<String> columns) {
         return columns.size() == 5 && columns.get(WINNER_IDX).equalsIgnoreCase("yes");
+    }
+
+    public List<String> getProducersList() {
+        return Arrays.asList(producers.split(","));
     }
 
     @Override
