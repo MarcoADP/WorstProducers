@@ -26,7 +26,6 @@ public class MovieService {
     public void populate(String moviesCsv) {
         List<String> rows = getRows(moviesCsv);
         rows.forEach(this::convertToMovie);
-        findProducers();
     }
 
     private List<String> getRows(String moviesCsv) {
@@ -62,30 +61,32 @@ public class MovieService {
         return movieRepository.findMoviesByWinnerTrue();
     }
 
-    public void findProducers() {
+    public Map<String, List<Movie>> findProducersWithMoreThanOneMovie() {
         var movies = findWinners();
-        List<String> producers = getProducers(movies);
-        Map<String, Integer> producersMap = countMoviesByProducer(producers);
-        List<String> producersFiltered = getProducersWithMoreThanOneMovie(producersMap);
-        System.out.println("\nPRODUCERS");
-        producersFiltered.forEach(System.out::println);
+        Map<String, List<Movie>> moviesGroupedByProducer = groupMoviesByProducer(movies);
+        return getProducersWithMoreThanOneMovie(moviesGroupedByProducer);
+
     }
 
-    public List<String> getProducersWithMoreThanOneMovie(Map<String, Integer> producersMap) {
-        return producersMap.entrySet().stream().filter(prod -> prod.getValue() > 1).
-                map(Map.Entry::getKey).collect(Collectors.toList());
+    public Map<String, List<Movie>> groupMoviesByProducer(List<Movie> movies) {
+        Map<String, List<Movie>> moviesGroupedByProducers = new HashMap<>();
+        movies.forEach(movie -> movie.getProducersList().forEach(producer ->
+                moviesGroupedByProducers.compute(producer, (k, v) -> addMovie(v, movie))));
+        return moviesGroupedByProducers;
     }
 
-    public List<String> getProducers(List<Movie> movies) {
-        List<String> producers = new ArrayList<>();
-        movies.forEach(movie -> producers.addAll(movie.getProducersList()));
-        return producers;
+    private List<Movie> addMovie(List<Movie> movies, Movie movie) {
+        if (movies == null) {
+            movies = new ArrayList<>();
+        }
+        movies.add(movie);
+        return movies;
     }
 
-    public Map<String, Integer> countMoviesByProducer(List<String> producers) {
-        Map<String, Integer> producersMap = new HashMap<>();
-        producers.forEach(e -> producersMap.compute(e, (k, v) -> v == null ? 1 : v + 1));
-        return producersMap;
+    public Map<String, List<Movie>> getProducersWithMoreThanOneMovie(Map<String, List<Movie>> moviesGrouped) {
+        return moviesGrouped.entrySet().stream()
+                .filter(prod -> prod.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }

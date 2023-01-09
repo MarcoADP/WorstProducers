@@ -83,13 +83,6 @@ public class Movie {
 
     @Override
     public String toString() {
-        return "Movie{" +
-                "id=" + id +
-                ", year=" + year +
-                ", title='" + title + '\'' +
-                ", studios='" + studios + '\'' +
-                ", producers='" + producers + '\'' +
-                ", winner=" + winner +
-                '}';
+        return String.format("%s - %s", year, title);
     }
 }

@@ -4,7 +4,6 @@ import com.textoit.worstproducers.service.MovieService;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,8 +12,12 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class WorstProducersApplication {
 
-	@Autowired
+	final
 	MovieService movieService;
+
+	public WorstProducersApplication(MovieService movieService) {
+		this.movieService = movieService;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(WorstProducersApplication.class, args);
