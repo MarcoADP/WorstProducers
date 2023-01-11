@@ -1,9 +1,7 @@
 package com.textoit.worstproducers;
 
 import com.textoit.worstproducers.service.MovieService;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,6 +13,9 @@ public class WorstProducersApplication {
 	final
 	MovieService movieService;
 
+	@Value("${moviecsv.filename}")
+	private String movieCsvFilename;
+
 	public WorstProducersApplication(MovieService movieService) {
 		this.movieService = movieService;
 	}
@@ -25,22 +26,7 @@ public class WorstProducersApplication {
 
 	@Bean
 	CommandLineRunner runner() {
-		return args -> {
-			ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-			try (InputStream inputStream =  classloader.getResourceAsStream("movielist.csv")) {
-
-				if (inputStream == null) {
-					throw new FileNotFoundException("Sem filmes");
-				}
-
-				String movies = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-				movieService.populate(movies);
-
-			} catch (FileNotFoundException e) {
-				throw new FileNotFoundException("Arquivo não encontrado. Verifique se o CSV está na pasta Resources!");
-			}
-
-		};
+		return args -> movieService.migrateMovies(movieCsvFilename);
 	}
 
 }

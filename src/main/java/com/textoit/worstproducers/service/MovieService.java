@@ -2,11 +2,18 @@ package com.textoit.worstproducers.service;
 
 import com.textoit.worstproducers.entity.Movie;
 import com.textoit.worstproducers.repository.MovieRepository;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -23,22 +30,49 @@ public class MovieService {
         this.movieRepository = movieRepository;
     }
 
-    public void populate(String moviesCsv) {
-        List<String> rows = getRows(moviesCsv);
-        rows.forEach(this::convertToMovie);
+    public Iterable<Movie> findAll() {
+        return movieRepository.findAll();
     }
 
-    private List<String> getRows(String moviesCsv) {
+    public void migrateMovies(String filename) throws IOException {
+        String content = readCsv(filename);
+        List<String> rows = separateRows(content);
+        List<Movie> movies = convertRowsToMovies(rows);
+        saveAll(movies);
+    }
+
+    public String readCsv(String filename) throws IOException {
+        ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+        try (InputStream inputStream =  classloader.getResourceAsStream(filename)) {
+
+            if (inputStream == null) {
+                throw new FileNotFoundException("Sem filmes");
+            }
+
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+        } catch (IOException e) {
+            throw new IOException("Arquivo não encontrado. Verifique se o CSV está na pasta Resources!");
+        }
+    }
+
+    public List<String> separateRows(String moviesCsv) {
         return Arrays.asList(moviesCsv.split("\n"));
     }
 
-    private void convertToMovie(String row) {
+    public List<Movie> convertRowsToMovies(List<String> rows) {
+        List<Movie> movies = new ArrayList<>();
+        rows.forEach(row -> convertToMovie(row).ifPresent(movies::add));
+        return movies;
+    }
+
+    public Optional<Movie> convertToMovie(String row) {
         List<String> columns = getColumns(row);
 
         if (isNumber(columns.get(0))) {
-            Movie movie = new Movie(columns);
-            save(movie);
+            return Optional.of(new Movie(columns));
         }
+        return Optional.empty();
     }
 
     private List<String> getColumns(String row) {
@@ -53,8 +87,8 @@ public class MovieService {
         return pattern.matcher(column).matches();
     }
 
-    public Movie save(Movie movie) {
-        return movieRepository.save(movie);
+    public void saveAll(List<Movie> movies) {
+        movieRepository.saveAll(movies);
     }
 
     public List<Movie> findWinners() {
@@ -89,4 +123,10 @@ public class MovieService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    public Set<String> findProducers() {
+        Iterable<Movie> movies = findAll();
+        Set<String> producers = new HashSet<>();
+        movies.forEach(movie -> producers.addAll(movie.getProducersList()));
+        return producers;
+    }
 }
