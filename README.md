@@ -10,6 +10,7 @@ Stack:
 - OpenAPI
 - H2
 
+Comandos:
 - Run: mvn spring-boot:run
 - Test: mvn test
 - OpenAPI: http://localhost:8080/swagger-ui/index.html#/
