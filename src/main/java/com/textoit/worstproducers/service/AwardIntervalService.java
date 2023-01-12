@@ -48,7 +48,7 @@ public class AwardIntervalService {
         int interval = nextYear - year;
         if (awardIntervalMin.isEmpty() || awardIntervalMin.get(0).getInterval().equals(interval)) {
             awardIntervalMin.add(new AwardInterval(producer, interval, year, nextYear));
-        } else if (awardIntervalMin.get(0).getInterval() > interval) {
+        } else if (interval < awardIntervalMin.get(0).getInterval()) {
             awardIntervalMin = new ArrayList<>();
             awardIntervalMin.add(new AwardInterval(producer, interval, year, nextYear));
         }
@@ -64,7 +64,7 @@ public class AwardIntervalService {
         int interval = nextYear - year;
         if (awardIntervalMax.isEmpty() || awardIntervalMax.get(0).getInterval().equals(interval)) {
             awardIntervalMax.add(new AwardInterval(producer, interval, year, nextYear));
-        } else if (awardIntervalMax.get(0).getInterval() < interval) {
+        } else if (interval > awardIntervalMax.get(0).getInterval()) {
             awardIntervalMax = new ArrayList<>();
             awardIntervalMax.add(new AwardInterval(producer, interval, year, nextYear));
         }
